@@ -9,6 +9,7 @@
 import XCTest
 @testable import ReSwift
 
+// swiftlint:disable file_length
 class StoreTests: XCTestCase {
 
     func testInit() {
@@ -58,7 +59,11 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         var subscriber: TestSubscriber? = TestSubscriber()
 
-        store.subscribe(subscriber!)
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber!)
+        #else
+            store.subscribe(subscriber!)
+        #endif
         XCTAssertEqual(store.subscriptions.flatMap({ $0.subscriber }).count, 1)
 
         subscriber = nil
@@ -72,20 +77,34 @@ class StoreSubscribeTest: XCTestCase {
         var subscriber1: TestSubscriber? = TestSubscriber()
         var subscriber2: TestSubscriber? = TestSubscriber()
 
-        store.subscribe(subscriber1!)
-        store.subscribe(subscriber2!)
-        store.dispatch(SetValueAction(3))
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber1!)
+            store.subscribe(subscriber: subscriber2!)
+            store.dispatch(action: SetValueAction(3))
+        #else
+            store.subscribe(subscriber1!)
+            store.subscribe(subscriber2!)
+            store.dispatch(SetValueAction(3))
+        #endif
         XCTAssertEqual(store.subscriptions.count, 2)
         XCTAssertEqual(subscriber1?.receivedStates.last?.testValue, 3)
         XCTAssertEqual(subscriber2?.receivedStates.last?.testValue, 3)
 
         subscriber1 = nil
-        store.dispatch(SetValueAction(5))
+        #if swift(>=3)
+            store.dispatch(action: SetValueAction(5))
+        #else
+            store.dispatch(SetValueAction(5))
+        #endif
         XCTAssertEqual(store.subscriptions.count, 1)
         XCTAssertEqual(subscriber2?.receivedStates.last?.testValue, 5)
 
         subscriber2 = nil
-        store.dispatch(SetValueAction(8))
+        #if swift(>=3)
+            store.dispatch(action: SetValueAction(8))
+        #else
+            store.dispatch(SetValueAction(8))
+        #endif
         XCTAssertEqual(store.subscriptions.count, 0)
     }
 
@@ -94,8 +113,13 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
-        store.subscribe(subscriber)
-        store.dispatch(SetValueAction(3))
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+            store.dispatch(action: SetValueAction(3))
+        #else
+            store.subscribe(subscriber)
+            store.dispatch(SetValueAction(3))
+        #endif
 
         XCTAssertEqual(subscriber.receivedStates.last?.testValue, 3)
     }
@@ -105,8 +129,13 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = DispatchingSubscriber(store: store)
 
-        store.subscribe(subscriber)
-        store.dispatch(SetValueAction(2))
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+            store.dispatch(action: SetValueAction(2))
+        #else
+            store.subscribe(subscriber)
+            store.dispatch(SetValueAction(2))
+        #endif
 
         XCTAssertEqual(store.state.testValue, 5)
     }
@@ -116,18 +145,33 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
-        store.dispatch(SetValueAction(5))
-        store.subscribe(subscriber)
-        store.dispatch(SetValueAction(10))
+        #if swift(>=3)
+            store.dispatch(action: SetValueAction(5))
+            store.subscribe(subscriber: subscriber)
+            store.dispatch(action: SetValueAction(10))
 
-        store.unsubscribe(subscriber)
-        // Following value is missed due to not being subscribed:
-        store.dispatch(SetValueAction(15))
-        store.dispatch(SetValueAction(25))
+            store.unsubscribe(subscriber: subscriber)
+            // Following value is missed due to not being subscribed:
+            store.dispatch(action: SetValueAction(15))
+            store.dispatch(action: SetValueAction(25))
 
-        store.subscribe(subscriber)
+            store.subscribe(subscriber: subscriber)
 
-        store.dispatch(SetValueAction(20))
+            store.dispatch(action: SetValueAction(20))
+        #else
+            store.dispatch(SetValueAction(5))
+            store.subscribe(subscriber)
+            store.dispatch(SetValueAction(10))
+
+            store.unsubscribe(subscriber)
+            // Following value is missed due to not being subscribed:
+            store.dispatch(SetValueAction(15))
+            store.dispatch(SetValueAction(25))
+
+            store.subscribe(subscriber)
+
+            store.dispatch(SetValueAction(20))
+        #endif
 
         XCTAssertEqual(subscriber.receivedStates.count, 4)
         XCTAssertEqual(subscriber.receivedStates[subscriber.receivedStates.count - 4].testValue, 5)
@@ -141,8 +185,13 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
-        store.subscribe(subscriber)
-        store.subscribe(subscriber)
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+            store.subscribe(subscriber: subscriber)
+        #else
+            store.subscribe(subscriber)
+            store.subscribe(subscriber)
+        #endif
 
         XCTAssertEqual(store.subscriptions.count, 1)
     }
@@ -152,8 +201,13 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
-        store.subscribe(subscriber) { $0 }
-        store.subscribe(subscriber) { $0 }
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber) { $0 }
+            store.subscribe(subscriber: subscriber) { $0 }
+        #else
+            store.subscribe(subscriber) { $0 }
+            store.subscribe(subscriber) { $0 }
+        #endif
 
         XCTAssertEqual(store.subscriptions.count, 1)
     }
@@ -179,7 +233,11 @@ class StoreDispatchTest: XCTestCase {
     func testReturnsDispatchedAction() {
         // it returns the dispatched action
         let action = SetValueAction(10)
-        let returnValue = store.dispatch(action)
+        #if swift(>=3)
+            let returnValue = store.dispatch(action: action)
+        #else
+            let returnValue = store.dispatch(action)
+        #endif
 
         XCTAssertEqual((returnValue as? SetValueAction)?.value, action.value)
     }
@@ -190,75 +248,140 @@ class StoreDispatchTest: XCTestCase {
         let reducer = DispatchingReducer()
         store = Store(reducer: reducer, state: TestAppState())
         reducer.store = store
-        store.dispatch(SetValueAction(10))
+        #if swift(>=3)
+            store.dispatch(action: SetValueAction(10))
+        #else
+            store.dispatch(SetValueAction(10))
+        #endif
     }
 
     func testAcceptsActionCreators() {
         // it accepts action creators
-        store.dispatch(SetValueAction(5))
+        #if swift(>=3)
+            store.dispatch(action: SetValueAction(5))
+        #else
+            store.dispatch(SetValueAction(5))
+        #endif
 
         let doubleValueActionCreator: Store<TestAppState>.ActionCreator = { state, store in
             return SetValueAction(state.testValue! * 2)
         }
 
-        store.dispatch(doubleValueActionCreator)
+        #if swift(>=3)
+            _ = store.dispatch(actionCreator: doubleValueActionCreator)
+        #else
+            store.dispatch(doubleValueActionCreator)
+        #endif
 
         XCTAssertEqual(store.state.testValue, 10)
     }
 
     func testAcceptsAsyncActionCreators() {
-        let expectation = expectationWithDescription("It accepts async action creators")
+        #if swift(>=3)
+            let asyncExpectation = expectation(withDescription: "It accepts async action creators")
+        #else
+            let asyncExpectation = expectationWithDescription("It accepts async action creators")
+        #endif
 
-        let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-                // Provide the callback with an action creator
-                callback { state, store in
-                    return SetValueAction(5)
+        #if swift(>=3)
+            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+                DispatchQueue.global(attributes: .qosDefault).async() {
+                    // Provide the callback with an action creator
+                    callback { state, store in
+                        return SetValueAction(5)
+                    }
                 }
             }
-        }
+        #else
+            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+                    // Provide the callback with an action creator
+                    callback { state, store in
+                        return SetValueAction(5)
+                    }
+                }
+            }
+        #endif
 
         let subscriber = CallbackSubscriber { [unowned self] state in
             if self.store.state.testValue != nil {
                 XCTAssertEqual(self.store.state.testValue, 5)
-                expectation.fulfill()
+                asyncExpectation.fulfill()
             }
         }
-        store.subscribe(subscriber)
 
-        store.dispatch(asyncActionCreator)
-        waitForExpectationsWithTimeout(1) { error in
-            if let error = error {
-                XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+            store.dispatch(asyncActionCreator: asyncActionCreator)
+            waitForExpectations(withTimeout: 1) { error in
+                if let error = error {
+                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+                }
             }
-        }
+        #else
+            store.subscribe(subscriber)
+            store.dispatch(asyncActionCreator)
+            waitForExpectationsWithTimeout(1) { error in
+                if let error = error {
+                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+                }
+            }
+        #endif
     }
 
     func testCallsCalbackOnce() {
-        let expectation = expectationWithDescription(
-            "It calls the callback once state update from async action is complete")
+        #if swift(>=3)
+            let asyncExpectation = expectation(
+                withDescription: "It calls the callback once state update from async action is " +
+                                 "complete")
 
-        let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-                // Provide the callback with an action creator
-                callback { state, store in
-                    return SetValueAction(5)
+            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+                DispatchQueue.global(attributes: .qosDefault).async() {
+                    // Provide the callback with an action creator
+                    callback { state, store in
+                        return SetValueAction(5)
+                    }
                 }
             }
-        }
 
-        store.dispatch(asyncActionCreator) { newState in
-            XCTAssertEqual(self.store.state.testValue, 5)
-            if newState.testValue == 5 {
-                expectation.fulfill()
+            store.dispatch(asyncActionCreator: asyncActionCreator) { newState in
+                XCTAssertEqual(self.store.state.testValue, 5)
+                if newState.testValue == 5 {
+                    asyncExpectation.fulfill()
+                }
             }
-        }
 
-        waitForExpectationsWithTimeout(1) { error in
-            if let error = error {
-                XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+            waitForExpectations(withTimeout: 1) { error in
+                if let error = error {
+                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+                }
             }
-        }
+        #else
+            let asyncExpectation = expectationWithDescription(
+                "It calls the callback once state update from async action is complete")
+
+            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+                    // Provide the callback with an action creator
+                    callback { state, store in
+                        return SetValueAction(5)
+                    }
+                }
+            }
+
+            store.dispatch(asyncActionCreator) { newState in
+                XCTAssertEqual(self.store.state.testValue, 5)
+                if newState.testValue == 5 {
+                    asyncExpectation.fulfill()
+                }
+            }
+
+            waitForExpectationsWithTimeout(1) { error in
+                if let error = error {
+                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
+                }
+            }
+        #endif
     }
 }
 
@@ -289,7 +412,11 @@ class DispatchingReducer: XCTestCase, Reducer {
 
     func handleAction(action: Action, state: TestAppState?) -> TestAppState {
         expectFatalError {
-            self.store?.dispatch(SetValueAction(20))
+            #if swift(>=3)
+                self.store?.dispatch(action: SetValueAction(20))
+            #else
+                self.store?.dispatch(SetValueAction(20))
+            #endif
         }
         return state ?? TestAppState()
     }

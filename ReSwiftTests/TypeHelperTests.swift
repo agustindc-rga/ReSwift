@@ -25,7 +25,13 @@ class TypeHelperTests: XCTestCase {
             return state ?? AppState1()
         }
 
-        withSpecificTypes(StandardAction(type: ""), state: AppState1(), function: reducerFunction)
+        #if swift(>=3)
+            _ = withSpecificTypes(action: StandardAction(type: ""), state: AppState1(),
+                                  function: reducerFunction)
+        #else
+            withSpecificTypes(StandardAction(type: ""), state: AppState1(),
+                              function: reducerFunction)
+        #endif
 
         XCTAssertTrue(called)
     }
@@ -39,7 +45,12 @@ class TypeHelperTests: XCTestCase {
             return state ?? AppState1()
         }
 
-        withSpecificTypes(StandardAction(type: ""), state: nil, function: reducerFunction)
+        #if swift(>=3)
+            _ = withSpecificTypes(action: StandardAction(type: ""), state: nil,
+                                  function: reducerFunction)
+        #else
+            withSpecificTypes(StandardAction(type: ""), state: nil, function: reducerFunction)
+        #endif
 
         XCTAssertTrue(called)
     }
@@ -53,7 +64,13 @@ class TypeHelperTests: XCTestCase {
             return state ?? AppState1()
         }
 
-        withSpecificTypes(StandardAction(type: ""), state: AppState2(), function: reducerFunction)
+        #if swift(>=3)
+            _ = withSpecificTypes(action: StandardAction(type: ""), state: AppState2(),
+                                  function: reducerFunction)
+        #else
+            withSpecificTypes(StandardAction(type: ""), state: AppState2(),
+                              function: reducerFunction)
+        #endif
 
         XCTAssertFalse(called)
     }

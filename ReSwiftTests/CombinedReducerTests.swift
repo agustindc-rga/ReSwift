@@ -57,10 +57,16 @@ class CombinedReducerTest: XCTestCase {
 
         let combinedReducer = CombinedReducer([mockReducer1, mockReducer2])
 
-        combinedReducer._handleAction(
-            StandardAction(type: emptyAction),
-            state: CounterState()
-        )
+        #if swift(>=3)
+            _ = combinedReducer._handleAction(
+                action: StandardAction(type: emptyAction),
+                state: CounterState())
+        #else
+            combinedReducer._handleAction(
+                StandardAction(type: emptyAction),
+                state: CounterState()
+            )
+        #endif
 
         XCTAssertEqual(mockReducer1.calledWithAction.count, 1)
         XCTAssertEqual(mockReducer2.calledWithAction.count, 1)
@@ -74,8 +80,13 @@ class CombinedReducerTest: XCTestCase {
         let increaseByTwoReducer = IncreaseByTwoReducer()
 
         let combinedReducer = CombinedReducer([increaseByOneReducer, increaseByTwoReducer])
-        let newState = combinedReducer._handleAction(StandardAction(type: emptyAction),
-                                                     state: CounterState()) as? CounterState
+        #if swift(>=3)
+            let newState = combinedReducer._handleAction(action: StandardAction(type: emptyAction),
+                                                         state: CounterState()) as? CounterState
+        #else
+            let newState = combinedReducer._handleAction(StandardAction(type: emptyAction),
+                                                         state: CounterState()) as? CounterState
+        #endif
 
         XCTAssertEqual(newState?.count, 3)
     }

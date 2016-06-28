@@ -15,6 +15,15 @@ import Foundation
  - parameter file:    Calling file
  - parameter line:    Calling line
  */
+#if swift(>=3)
+@noreturn public func fatalError(_ message: @autoclosure () -> String = "",
+                                 file: StaticString = #file, line: UInt = #line) {
+    Assertions.fatalErrorClosure(message(), file, line)
+    repeat {
+        RunLoop.current().run()
+    } while (true)
+}
+#else
 @noreturn public func fatalError(@autoclosure message: () -> String = "",
                                               file: StaticString = #file, line: UInt = #line) {
     Assertions.fatalErrorClosure(message(), file, line)
@@ -22,6 +31,7 @@ import Foundation
         NSRunLoop.currentRunLoop().run()
     } while (true)
 }
+#endif
 
 /// Stores custom assertions closures, by default it points to Swift functions. But test target can
 /// override them.

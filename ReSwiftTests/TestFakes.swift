@@ -112,7 +112,11 @@ class DispatchingSubscriber: StoreSubscriber {
         // Test if we've already dispatched this action to
         // avoid endless recursion
         if state.testValue != 5 {
-            self.store.dispatch(SetValueAction(5))
+            #if swift(>=3)
+                self.store.dispatch(action: SetValueAction(5))
+            #else
+                self.store.dispatch(SetValueAction(5))
+            #endif
         }
     }
 }

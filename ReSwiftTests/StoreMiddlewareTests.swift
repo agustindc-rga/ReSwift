@@ -42,7 +42,7 @@ let dispatchingMiddleware: Middleware = { dispatch, getState in
         return { action in
 
             if var action = action as? SetValueAction {
-                dispatch?(SetValueStringAction("\(action.value)"))
+                _ = dispatch?(SetValueStringAction("\(action.value)"))
 
                 return "Converted Action Successfully"
             }
@@ -62,7 +62,7 @@ let stateAccessingMiddleware: Middleware = { dispatch, getState in
             // avoid endless recursion by checking if we've dispatched exactly this action
             if appState?.testValue == "OK" && stringAction?.value != "Not OK" {
                 // dispatch a new action
-                dispatch?(SetValueStringAction("Not OK"))
+                _ = dispatch?(SetValueStringAction("Not OK"))
 
                 // and swallow the current one
                 return next(StandardAction(type: "No-Op-Action"))
@@ -84,10 +84,18 @@ class StoreMiddlewareTest: XCTestCase {
             middleware: [firstMiddleware, secondMiddleware])
 
         let subscriber = TestStoreSubscriber<TestStringAppState>()
-        store.subscribe(subscriber)
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+        #else
+            store.subscribe(subscriber)
+        #endif
 
         let action = SetValueStringAction("OK")
-        store.dispatch(action)
+        #if swift(>=3)
+            store.dispatch(action: action)
+        #else
+            store.dispatch(action)
+        #endif
 
         XCTAssertEqual(store.state.testValue, "OK First Middleware Second Middleware")
     }
@@ -100,10 +108,18 @@ class StoreMiddlewareTest: XCTestCase {
             middleware: [firstMiddleware, secondMiddleware, dispatchingMiddleware])
 
         let subscriber = TestStoreSubscriber<TestStringAppState>()
-        store.subscribe(subscriber)
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber)
+        #else
+            store.subscribe(subscriber)
+        #endif
 
         let action = SetValueAction(10)
-        store.dispatch(action)
+        #if swift(>=3)
+            store.dispatch(action: action)
+        #else
+            store.dispatch(action)
+        #endif
 
         XCTAssertEqual(store.state.testValue, "10 First Middleware Second Middleware")
     }
@@ -116,7 +132,11 @@ class StoreMiddlewareTest: XCTestCase {
             middleware: [firstMiddleware, secondMiddleware, dispatchingMiddleware])
 
         let action = SetValueAction(10)
-        let returnValue = store.dispatch(action) as? String
+        #if swift(>=3)
+            let returnValue = store.dispatch(action: action) as? String
+        #else
+            let returnValue = store.dispatch(action) as? String
+        #endif
 
         XCTAssertEqual(returnValue, "Converted Action Successfully")
     }
@@ -130,7 +150,11 @@ class StoreMiddlewareTest: XCTestCase {
         let store = Store<TestStringAppState>(reducer: reducer, state: state,
             middleware: [stateAccessingMiddleware])
 
-        store.dispatch(SetValueStringAction("Action That Won't Go Through"))
+        #if swift(>=3)
+            store.dispatch(action: SetValueStringAction("Action That Won't Go Through"))
+        #else
+            store.dispatch(SetValueStringAction("Action That Won't Go Through"))
+        #endif
 
         XCTAssertEqual(store.state.testValue, "Not OK")
     }

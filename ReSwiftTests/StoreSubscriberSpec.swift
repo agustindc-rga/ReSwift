@@ -17,11 +17,17 @@ class StoreSubscriberTests: XCTestCase {
         let store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestFilteredSubscriber()
 
-        store.subscribe(subscriber) {
-            $0.testValue
-        }
-
-        store.dispatch(SetValueAction(3))
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber) {
+                $0.testValue
+            }
+            store.dispatch(action: SetValueAction(3))
+        #else
+            store.subscribe(subscriber) {
+                $0.testValue
+            }
+            store.dispatch(SetValueAction(3))
+        #endif
 
         XCTAssertEqual(subscriber.receivedValue, 3)
     }
@@ -32,17 +38,17 @@ class StoreSubscriberTests: XCTestCase {
         let store = Store(reducer: reducer, state: TestComplexAppState())
         let subscriber = TestSelectiveSubscriber()
 
-        store.subscribe(subscriber) {
-            (
-                $0.testValue,
-                $0.otherState?.name
-            )
-        }
-
-        store.dispatch(SetValueAction(5))
-        store.dispatch(SetOtherStateAction(
-            otherState: OtherState(name: "TestName", age: 99)
-        ))
+        #if swift(>=3)
+            store.subscribe(subscriber: subscriber) { ($0.testValue, $0.otherState?.name) }
+            store.dispatch(action: SetValueAction(5))
+            store.dispatch(action: SetOtherStateAction(
+                otherState: OtherState(name: "TestName", age: 99)
+            ))
+        #else
+            store.subscribe(subscriber) { ($0.testValue, $0.otherState?.name) }
+            store.dispatch(SetValueAction(5))
+            store.dispatch(SetOtherStateAction(otherState: OtherState(name: "TestName", age: 99)))
+        #endif
 
         XCTAssertEqual(subscriber.receivedValue.0, 5)
         XCTAssertEqual(subscriber.receivedValue.1, "TestName")

@@ -19,6 +19,7 @@ public class Store<State: StateType>: StoreType {
 
     typealias SubscriptionType = Subscription<State>
 
+    // swiftlint:disable todo
     // TODO: Setter should not be public; need way for store enhancers to modify appState anyway
 
     /*private (set)*/ public var state: State! {
