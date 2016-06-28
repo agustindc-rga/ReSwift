@@ -5,14 +5,8 @@ branches:
   except:
     - gh-pages
 
-before_install:
-  - brew update
-  - brew install carthage || brew outdated carthage || brew upgrade carthage
-  - carthage version
-
 install:
   - gem install xcpretty
-  - carthage bootstrap --no-use-binaries --platform Mac,iOS
 
 env:
   global:
@@ -20,10 +14,11 @@ env:
     - LANG=en_US.UTF-8
     - FRAMEWORK_NAME="ReSwift"
     - IOS_SDK=iphonesimulator9.3
-    - OSX_SDK=macosx10.11
+    - MACOS_SDK=macosx10.11
     - TVOS_SDK=appletvsimulator9.2
     - WATCHOS_SDK=watchsimulator2.2
   matrix:
+    - DESTINATION="arch=x86_64"                    SCHEME="macOS"   SDK="$MACOS_SDK"   ACTION="test"
     - DESTINATION="OS=9.3,name=iPhone 6S Plus"     SCHEME="iOS"     SDK="$IOS_SDK"     ACTION="test"
 
 script:
